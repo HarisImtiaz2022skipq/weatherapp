@@ -4,54 +4,29 @@ import { WeatherData } from '@/lib/type/weather';
 import React, { useEffect, useState } from 'react';
 import { AreaChart, Area, XAxis, Tooltip, ResponsiveContainer} from 'recharts';
 
-const Weather = () => {
+interface WeatherProps {
+  location: string;
+}
+
+const Weather = ({ location }: WeatherProps) => {
   const [weatherData, setWeatherData] = useState<WeatherData | null>(null);
   const [selectedDayIndex, setSelectedDayIndex] = useState(0); 
-  const [latitude, setLatitude] = useState<number | null>(null);
-  const [longitude, setLongitude] = useState<number | null>(null);
-
-  
-  useEffect(() => {
-    const getCurrentLocation = () => {
-      if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-          (position) => {
-            setLatitude(position.coords.latitude);
-            setLongitude(position.coords.longitude);
-          },
-          (error) => {
-            console.error("Error fetching location:", error);
-            alert("Failed to get your location.");
-          }
-        );
-      } else {
-        alert("Geolocation is not supported by this browser.");
-      }
-    };
-
-    getCurrentLocation();
-  }, []);
 
   useEffect(() => {
     const getWeather = async () => {
-      if (latitude && longitude) {
-        const data = await fetchWeather({ lat: latitude, lon: longitude });
-        setWeatherData(data);
-      }
+      const data = await fetchWeather(location);
+      setWeatherData(data);
     };
-
-    if (latitude && longitude) {
-      getWeather();
-    }
-  }, [latitude, longitude]);
+    getWeather();
+  }, [location]);
 
   if (!weatherData) return <p>Loading...</p>;
 
   const dailyData = weatherData?.timelines?.daily;
   const selectedDayData = dailyData[selectedDayIndex]; 
-  const hourlyData = weatherData?.timelines.hourly.slice(0,8);
+  const hourlyData = weatherData.timelines.hourly.filter((_, index) => index % 3 === 0);
   const chartData = hourlyData?.map((data) => ({
-    time: new Date(data.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' ,hour12: true}),
+    time: new Date(data.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
     temperature: data.values.temperature || 0,
     precipitation: data.values.precipitationProbability || 0,
     humidity: data.values.humidity || 0,
@@ -81,10 +56,11 @@ const Weather = () => {
         </div>
       </div>
       <ResponsiveContainer width="100%" height={200}>
-        <AreaChart data={chartData} margin={{ top: 10, right: 30, left: 20, bottom: 0 }}>
-          <XAxis dataKey="time" interval={0} fontSize={10}/>
+        <AreaChart data={chartData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+          {/* <CartesianGrid strokeDasharray="3 3" /> */}
+          <XAxis dataKey="time" />
           <Tooltip />
-          <Area  dataKey="temperature" stroke="#8884d8"  name="Temperature (°C)"  dot={{
+          <Area  dataKey="temperature" stroke="#8884d8"  name="Temperature (°C)" dot={{
                 fill: "white",
               }}/>
         </AreaChart>
