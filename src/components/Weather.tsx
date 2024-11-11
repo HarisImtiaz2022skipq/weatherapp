@@ -24,9 +24,9 @@ const Weather = ({ location }: WeatherProps) => {
 
   const dailyData = weatherData?.timelines?.daily;
   const selectedDayData = dailyData[selectedDayIndex]; 
-  const hourlyData = weatherData.timelines.hourly.filter((_, index) => index % 3 === 0);
+  const hourlyData = weatherData.timelines.hourly.slice(0,7);
   const chartData = hourlyData?.map((data) => ({
-    time: new Date(data.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+    time: new Date(data.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit',hour12: true }),
     temperature: data.values.temperature || 0,
     precipitation: data.values.precipitationProbability || 0,
     humidity: data.values.humidity || 0,
@@ -56,9 +56,8 @@ const Weather = ({ location }: WeatherProps) => {
         </div>
       </div>
       <ResponsiveContainer width="100%" height={200}>
-        <AreaChart data={chartData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
-          {/* <CartesianGrid strokeDasharray="3 3" /> */}
-          <XAxis dataKey="time" />
+        <AreaChart data={chartData} margin={{ top: 10, right: 30, left: 30, bottom: 0 }}>
+          <XAxis dataKey="time" fontSize={10} interval={0}/>
           <Tooltip />
           <Area  dataKey="temperature" stroke="#8884d8"  name="Temperature (°C)" dot={{
                 fill: "white",
